@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Site com CI/CD</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            display: inline-block;
+        }
+        button {
+            background: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CI/CD com GitHub Actions</h1>
+        <p>Este site foi construído e testado automaticamente!</p>
+        <p id="contador">Cliques: 0</p>
+        <button onclick="contar()">Clique aqui</button>
+    </div>
+
+    <script>
+        let clicks = 0;
+        function contar() {
+            clicks++;
+            document.getElementById('contador').innerHTML = `Cliques: ${clicks}`;
+        }
+    </script>
+</body>
+</html>
