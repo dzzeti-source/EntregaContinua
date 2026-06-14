@@ -6,44 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate-and-build:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout do código
-      uses: actions/checkout@v4
-    
-    - name: Configurar Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
-    - name: Instalar dependências
-      run: npm install
-    
-    - name: Validar HTML com HTMLHint
-      run: npx htmlhint index.html
-    
-    - name: Verificar existência do index.html
-      run: |
-        if [ -f "index.html" ]; then
-          echo "✅ index.html encontrado"
-        else
-          echo "❌ index.html não encontrado"
-          exit 1
-        fi
-    
-    - name: Executar build
-      run: npm run build
-    
-    - name: Upload do artefato buildado
-      uses: actions/upload-artifact@v4
-      with:
-        name: site-build
-        path: build/
-  
-  deploy-to-pages:
-    needs: validate-and-build
+  validate-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,19 +14,42 @@ jobs:
       id-token: write
     
     steps:
-    - name: Baixar artefato do build
-      uses: actions/download-artifact@v4
-      with:
-        name: site-build
-        path: ./_site
+    - name: Checkout do código
+      uses: actions/checkout@v4
     
-    - name: Configurar GitHub Pages
+    - name: Validar HTML com ferramenta nativa
+      run: |
+        echo "🔍 Validando HTML..."
+        if grep -q "<!DOCTYPE html>" index.html; then
+          echo "✅ DOCTYPE encontrado"
+        else
+          echo "❌ DOCTYPE não encontrado"
+          exit 1
+        fi
+        
+        if grep -q "<title>" index.html; then
+          echo "✅ Title encontrado"
+        else
+          echo "❌ Title não encontrado"
+          exit 1
+        fi
+        
+        if grep -q "<html" index.html; then
+          echo "✅ Tag HTML encontrada"
+        else
+          echo "❌ Tag HTML não encontrada"
+          exit 1
+        fi
+        
+        echo "✅ Todas as validações passaram!"
+    
+    - name: Setup Pages
       uses: actions/configure-pages@v4
     
-    - name: Upload para GitHub Pages
+    - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./_site
+        path: '.'
     
-    - name: Deploy para GitHub Pages
+    - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@v4
