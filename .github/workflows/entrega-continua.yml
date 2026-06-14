@@ -1,0 +1,83 @@
+name: Entrega Contínua - Frontend
+
+# Gatilho: executa quando há push na branch main
+on:
+  push:
+    branches: [ "main" ]
+  # Permite execução manual também
+  workflow_dispatch:
+
+# Jobs a serem executados
+jobs:
+  # JOB 1: Validação e Build (CI)
+  validate-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. Baixar o código do repositório
+    - name: Checkout do código
+      uses: actions/checkout@v4
+    
+    # 2. Configurar Node.js
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    # 3. Instalar dependências
+    - name: Instalar dependências
+      run: npm ci
+    
+    # 4. Executar o HTMLHint (validação real do HTML)
+    - name: Validar HTML com HTMLHint
+      run: npx htmlhint index.html
+    
+    # 5. Executar testes (simples verificação de arquivo)
+    - name: Verificar existência do index.html
+      run: |
+        if [ -f "index.html" ]; then
+          echo "✅ index.html encontrado"
+        else
+          echo "❌ index.html não encontrado"
+          exit 1
+        fi
+    
+    # 6. Executar build
+    - name: Executar build
+      run: npm run build
+    
+    # 7. Upload do artefato (opcional - para inspeção)
+    - name: Upload do artefato buildado
+      uses: actions/upload-artifact@v4
+      with:
+        name: site-build
+        path: build/
+  
+  # JOB 2: Deploy no GitHub Pages (Entrega Contínua - preparação)
+  deploy-to-pages:
+    needs: validate-and-build  # Só executa se o job anterior tiver sucesso
+    runs-on: ubuntu-latest
+    # Permissões necessárias para deploy no GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Baixar artefato do build
+      uses: actions/download-artifact@v4
+      with:
+        name: site-build
+        path: ./_site
+    
+    - name: Configurar GitHub Pages
+      uses: actions/configure-pages@v4
+    
+    - name: Upload para GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./_site
+    
+    - name: Deploy para GitHub Pages
+      uses: actions/deploy-pages@v4
